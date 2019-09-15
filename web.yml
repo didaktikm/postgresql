@@ -1,10 +1,36 @@
 ---
-- name: Устанавливаем Postgresql
-  hosts:
-    - web
-  gather_facts: true
-  remote_user: vagrant
-  become: true
+- hosts: web
+  become: yes
+  tasks:
 
-  roles:
-    - postgresql
+  - name: Add repo PGDG
+    yum:
+      name: https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+      state: installed
+
+  - name: install PostgreSQL and barman
+    yum:
+      name:
+        - postgresql11-server
+        - postgresql11-contrib
+        - barman
+
+  - name: init cluster
+    shell:
+      /usr/pgsql-11/bin/postgresql-11-setup initdb
+
+  # - name: copy postgresql.auto.conf file
+    # copy: src=postgresql.auto.conf dest=/var/lib/pgsql/11/data/postgresql.auto.conf owner=postgres group=postgres mode=0600
+
+  - name: postgresql restart
+    systemd:
+      name: postgresql-11
+      state: restarted
+      enabled: yes
+
+  - name: set the password for the postgres user in the postgresql cluster
+    postgresql_query:
+      db: template1
+      login_user: postgres
+      query: ALTER USER postgres PASSWORD 'otus'
+    become_user: postgres

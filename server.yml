@@ -1,5 +1,5 @@
 ---
-- hosts: all
+- hosts: server
   become: yes
   tasks:
 
@@ -18,7 +18,6 @@
   - name: init cluster
     shell:
       /usr/pgsql-11/bin/postgresql-11-setup initdb
-
 
   # - name: copy postgresql.auto.conf file
     # copy: src=postgresql.auto.conf dest=/var/lib/pgsql/11/data/postgresql.auto.conf owner=postgres group=postgres mode=0600
@@ -44,18 +43,48 @@
   #   copy: src=pgsqlSlave_pgpass dest=/var/lib/pgsql/.pgpass owner=postgres group=postgres mode=0600
   #   when: ansible_facts['hostname'] == "pgsqlSlave"
 
-  # - name: copy safe pg_hba.conf
-  #   copy: src=pg_hba.conf dest=/var/lib/pgsql/11/data/ owner=postgres group=postgres mode=0600
-
-  - name: postgresql restart
-    systemd:
-      name: postgresql-11
-      state: restarted
-      enabled: yes
-
   - name: create a new database "otusdb"
     postgresql_db:
       name: otusdb
       encoding: UTF-8
       template: template1
     become_user: postgres
+
+  - name: Create replication user
+    postgresql_user:
+      name: replication
+      password: replication
+      role_attr_flags: REPLICATION
+    become_user: postgres
+
+  # - name: Set wal2
+  #   postgresql_set:
+  #     name: max_wal_senders
+  #     value: 3
+  #   become_user: postgres
+  # - name: Set wal3
+  #   postgresql_set:
+  #     name: wal_keep_segments
+  #     value: 128
+  #   become_user: postgres  
+  # - name: Set wal4
+  #   postgresql_set:
+  #     name: wal_level
+  #     value: replica
+  #   become_user: postgres
+
+  - name: Grant user replication from network 172.20.10.0/24 access for replication
+    postgresql_pg_hba:
+      dest: /var/lib/pgsql/11/data/pg_hba.conf
+      contype: host
+      users: replication
+      source: 172.20.10.0/24
+      databases: replication
+      method: md5
+    become_user: postgres
+
+  - name: postgresql restart
+    systemd:
+      name: postgresql-11
+      state: restarted
+      enabled: yes
