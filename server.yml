@@ -1,10 +1,61 @@
 ---
-- name: Устанавливаем ELK stack
-  hosts:
-    - elk
-  gather_facts: no
-  remote_user: vagrant
-  become: true
+- hosts: all
+  become: yes
+  tasks:
 
-  roles:
-    - elkserver
+  - name: Add repo PGDG
+    yum:
+      name: https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+      state: installed
+
+  - name: install PostgreSQL and barman
+    yum:
+      name:
+        - postgresql11-server
+        - postgresql11-contrib
+        - barman
+
+  - name: init cluster
+    shell:
+      /usr/pgsql-11/bin/postgresql-11-setup initdb
+
+
+  # - name: copy postgresql.auto.conf file
+    # copy: src=postgresql.auto.conf dest=/var/lib/pgsql/11/data/postgresql.auto.conf owner=postgres group=postgres mode=0600
+
+  - name: postgresql restart
+    systemd:
+      name: postgresql-11
+      state: restarted
+      enabled: yes
+
+  - name: set the password for the postgres user in the postgresql cluster
+    postgresql_query:
+      db: template1
+      login_user: postgres
+      query: ALTER USER postgres PASSWORD 'otus'
+    become_user: postgres
+
+  # - name: copy pgpass to pgsqlMaster
+  #   copy: src=pgsqlMaster_pgpass dest=/var/lib/pgsql/.pgpass owner=postgres group=postgres mode=0600
+  #   when: ansible_facts['hostname'] == "pgsqlMaster"
+
+  # - name: copy pgpass to pgsqlSlave
+  #   copy: src=pgsqlSlave_pgpass dest=/var/lib/pgsql/.pgpass owner=postgres group=postgres mode=0600
+  #   when: ansible_facts['hostname'] == "pgsqlSlave"
+
+  # - name: copy safe pg_hba.conf
+  #   copy: src=pg_hba.conf dest=/var/lib/pgsql/11/data/ owner=postgres group=postgres mode=0600
+
+  - name: postgresql restart
+    systemd:
+      name: postgresql-11
+      state: restarted
+      enabled: yes
+
+  - name: create a new database "otusdb"
+    postgresql_db:
+      name: otusdb
+      encoding: UTF-8
+      template: template1
+    become_user: postgres
