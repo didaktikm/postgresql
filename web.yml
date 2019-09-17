@@ -15,11 +15,11 @@
         # - postgresql11-contrib
         - barman
 
-  - name: init cluster
-    shell: /usr/pgsql-11/bin/postgresql-11-setup initdb
+  # - name: init cluster
+  #   shell: /usr/pgsql-11/bin/postgresql-11-setup initdb
 
   - name: Copy files from db server
-    command: echo "replication"|pg_basebackup -h 172.20.10.50 -U replication -D /var/lib/pgsql/11/data/ --wal-method=stream"
+    shell: echo "replication"|pg_basebackup -h 172.20.10.50 -U replication -D /var/lib/pgsql/11/data/ --wal-method=stream
     become_user: postgres  
 
   - name: copy config files
@@ -27,7 +27,7 @@
       src=postgresql_web.conf
       dest=/var/lib/pgsql/11/data/postgresql.conf
       src=recovery.conf
-      dst=/var/lib/pgsql/11/data/recovery.conf
+      dest=/var/lib/pgsql/11/data/recovery.conf
       owner=postgres
       group=postgres
       mode=0600
