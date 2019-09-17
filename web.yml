@@ -13,12 +13,14 @@
       name:
         - postgresql11-server
         # - postgresql11-contrib
-        # - barman
+        - barman
+
+  - name: init cluster
+    shell: /usr/pgsql-11/bin/postgresql-11-setup initdb
 
   - name: Copy files from db server
-    shell: |
-      echo "replication"|su - postgres -c "pg_basebackup -h 172.20.10.50 -U replication -D /var/lib/pgsql/11/data/ --wal-method=stream"
-    become_user: postgres
+    command: echo "replication"|pg_basebackup -h 172.20.10.50 -U replication -D /var/lib/pgsql/11/data/ --wal-method=stream"
+    become_user: postgres  
 
   - name: copy config files
     copy:

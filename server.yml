@@ -12,12 +12,20 @@
     yum:
       name:
         - postgresql11-server
-        - postgresql11-contrib
+        # - postgresql11-contrib
         - barman
 
   - name: init cluster
     shell:
       /usr/pgsql-11/bin/postgresql-11-setup initdb
+  
+  - name: copy config files
+    copy:
+      src=postgresql_master.conf
+      dest=/var/lib/pgsql/11/data/postgresql.conf
+      owner=postgres
+      group=postgres
+      mode=0600
 
   # - name: copy postgresql.auto.conf file
     # copy: src=postgresql.auto.conf dest=/var/lib/pgsql/11/data/postgresql.auto.conf owner=postgres group=postgres mode=0600
@@ -38,10 +46,6 @@
   # - name: copy pgpass to pgsqlMaster
   #   copy: src=pgsqlMaster_pgpass dest=/var/lib/pgsql/.pgpass owner=postgres group=postgres mode=0600
   #   when: ansible_facts['hostname'] == "pgsqlMaster"
-
-  # - name: copy pgpass to pgsqlSlave
-  #   copy: src=pgsqlSlave_pgpass dest=/var/lib/pgsql/.pgpass owner=postgres group=postgres mode=0600
-  #   when: ansible_facts['hostname'] == "pgsqlSlave"
 
   - name: create a new database "otusdb"
     postgresql_db:
