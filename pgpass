@@ -1,0 +1,2 @@
+172.20.10.50:5432:postgres:barman:barman
+172.20.10.50:5432:*:streaming_barman:barman

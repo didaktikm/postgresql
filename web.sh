@@ -2,3 +2,4 @@
 # select * from otus;
 # INSERT INTO otusdb VALUES ('test string1945');
 # CREATE DATABASE replicatest ENCODING='UTF8';
+# psql -c 'select version()' -U barman -h server postgres

@@ -22,7 +22,7 @@
     shell: echo "replication"|pg_basebackup -h 172.20.10.50 -U replication -D /var/lib/pgsql/11/data/ --wal-method=stream
     become_user: postgres  
 
-  - name: copy config files
+  - name: copy config files Postgresql
     copy:
       src=postgresql_web.conf
       dest=/var/lib/pgsql/11/data/postgresql.conf
@@ -31,6 +31,22 @@
       owner=postgres
       group=postgres
       mode=0600
+
+  - name: copy config files Barman
+    copy:
+      src=server_web.conf
+      dest=/etc/barman.d/server.conf
+
+  - name: Copy pgpass
+    copy:
+      src=pgpass
+      dest=/var/lib/barman/.pgpass
+      owner=barman
+      group=barman
+      mode=0600
+
+  - name: Edit /etc/hosts
+    shell: echo "172.20.10.50    server" >> /etc/hosts  
 
   - name: postgresql restart
     systemd:
