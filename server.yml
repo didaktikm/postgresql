@@ -76,6 +76,19 @@
       role_attr_flags: LOGIN,REPLICATION
     become_user: postgres
 
+  - name: Edit /etc/hosts
+    shell: echo "172.20.10.51    web" >> /etc/hosts
+
+  # - name: Generate an OpenSSH keypair with the default values (4096 bits, rsa)
+  #   openssh_keypair:
+  #      path: /var/lib/pgsql/.ssh
+
+  # - name: Set authorized key taken from file
+  #   authorized_key:
+  #     user: postgres
+  #     state: present
+  #     key: "{{ lookup('file', '/keys/web/id_rsa.pub') }}"
+
   - name: postgresql restart
     systemd:
       name: postgresql-11
