@@ -83,11 +83,18 @@
   #   openssh_keypair:
   #      path: /var/lib/pgsql/.ssh
 
-  # - name: Set authorized key taken from file
-  #   authorized_key:
-  #     user: postgres
-  #     state: present
-  #     key: "{{ lookup('file', '/keys/web/id_rsa.pub') }}"
+  - name: Copy private key
+    copy:
+      src=/vagrant/keys/server/id_rsa
+      dest=dest=/var/lib/pgsql/11/data/.ssh/
+      owner=barman
+      group=barman
+
+  - name: Set authorized key WEB taken from file
+    authorized_key:
+      user: postgres
+      state: present
+      key: "{{ lookup('file', '/vagrant/keys/web/id_rsa.pub') }}"
 
   - name: postgresql restart
     systemd:
